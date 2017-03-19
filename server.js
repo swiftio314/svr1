@@ -6,7 +6,7 @@ var express = require('express'),
     morgan  = require('morgan');
     
 var http = require('http').Server(app);
-//var io = require('socket.io')(http);
+var io = require('socket.io')(http);
 Object.assign=require('object-assign')
 
 app.engine('html', require('ejs').renderFile);
@@ -61,7 +61,7 @@ var initDb = function(callback) {
 };
 
 app.get('/', function (req, res) {
-  res.send('Hello World svr1!');
+  res.send('Hello World svr1 socket.io!');
 });
 
 app.get('/pagecount', function (req, res) {
