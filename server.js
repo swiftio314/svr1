@@ -1,107 +1,82 @@
-//  OpenShift sample Node application
-var express = require('express'),
-    fs      = require('fs'),
-    app     = express(),
-    eps     = require('ejs'),
-    morgan  = require('morgan');
-    
-Object.assign=require('object-assign')
+var app = require('express')();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+//pair of user's name and user's socket
+var currentUsers = [];
+var currentSockets = [];
+var typingUsers = [];
 
-app.engine('html', require('ejs').renderFile);
-app.use(morgan('combined'))
+app.get('/', function(req, res){
+  res.sendFile(__dirname + '/index.html');
+});
 
-var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
-    ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0',
-    mongoURL = process.env.OPENSHIFT_MONGODB_DB_URL || process.env.MONGO_URL,
-    mongoURLLabel = "";
-
-if (mongoURL == null && process.env.DATABASE_SERVICE_NAME) {
-  var mongoServiceName = process.env.DATABASE_SERVICE_NAME.toUpperCase(),
-      mongoHost = process.env[mongoServiceName + '_SERVICE_HOST'],
-      mongoPort = process.env[mongoServiceName + '_SERVICE_PORT'],
-      mongoDatabase = process.env[mongoServiceName + '_DATABASE'],
-      mongoPassword = process.env[mongoServiceName + '_PASSWORD']
-      mongoUser = process.env[mongoServiceName + '_USER'];
-
-  if (mongoHost && mongoPort && mongoDatabase) {
-    mongoURLLabel = mongoURL = 'mongodb://';
-    if (mongoUser && mongoPassword) {
-      mongoURL += mongoUser + ':' + mongoPassword + '@';
-    }
-    // Provide UI label that excludes user id and pw
-    mongoURLLabel += mongoHost + ':' + mongoPort + '/' + mongoDatabase;
-    mongoURL += mongoHost + ':' +  mongoPort + '/' + mongoDatabase;
-
-  }
-}
-var db = null,
-    dbDetails = new Object();
-
-var initDb = function(callback) {
-  if (mongoURL == null) return;
-
-  var mongodb = require('mongodb');
-  if (mongodb == null) return;
-
-  mongodb.connect(mongoURL, function(err, conn) {
-    if (err) {
-      callback(err);
-      return;
-    }
-
-    db = conn;
-    dbDetails.databaseName = db.databaseName;
-    dbDetails.url = mongoURLLabel;
-    dbDetails.type = 'MongoDB';
-
-    console.log('Connected to MongoDB at: %s', mongoURL);
+io.on('connection', function(socket){
+  console.log('connection');
+  socket.on('chat message', function(userName, receiveName, msg, currentdate){
+	if(receiveName == 'all'){
+		//send message to all client without self
+		socket.broadcast.emit('chat message', userName, receiveName, msg, currentdate);
+	}
+	else{
+		currentSockets[currentUsers.indexOf(receiveName)].emit('chat message', userName, receiveName, msg, currentdate);
+	}
   });
-};
-
-app.get('/', function (req, res) {
-  // try to initialize the db on every request if it's not already
-  // initialized.
-  if (!db) {
-    initDb(function(err){});
-  }
-  if (db) {
-    var col = db.collection('counts');
-    // Create a document with request IP and current time of request
-    col.insert({ip: req.ip, date: Date.now()});
-    col.count(function(err, count){
-      res.render('index.html', { pageCountMessage : count, dbInfo: dbDetails });
-    });
-  } else {
-    res.render('index.html', { pageCountMessage : null});
+  
+  socket.on('new user', function(userName){
+	//check user's name exist or not
+    console.log('new user');
+    console.log(userName);
+	if(currentUsers.indexOf(userName)==-1){
+		currentUsers.push(userName);
+		currentSockets.push(socket);
+		io.emit('user join', userName);
+		io.emit('add userList', userName);
+	}
+	else{
+		socket.emit('userName exist', userName);
+	}
+  });
+  
+  socket.on('start typing', function(name){
+    console.log('start typing');
+	if(typingUsers.indexOf(name)==-1){
+		typingUsers.push(name);
+	}
+	io.emit('typing message', typingUsers);
+  });
+  
+  socket.on('stop typing', function(name){
+	console.log('new user');
+    if(typingUsers.indexOf(name)!=-1){
+		typingUsers.splice(typingUsers.indexOf(name),1);
+	}
+	io.emit('typing message', typingUsers);
+  });  
+  
+  socket.on('disconnect', function(){
+	if(currentSockets.indexOf(socket)!=-1){
+		//when disconnect username doesn't null, show user left message
+		//problem: sometimes client receive null left message, and nobody was disconnect.
+		if(currentUsers[currentSockets.indexOf(socket)] != null){
+			io.emit('user left', currentUsers[currentSockets.indexOf(socket)]);
+		}
+		//if disconnect user was typing, remove the name from typing list
+		if(typingUsers.indexOf(currentUsers[currentSockets.indexOf(socket)])!=-1){
+			typingUsers.splice(typingUsers.indexOf(currentUsers[currentSockets.indexOf(socket)]),1);
+			io.emit('typing message', typingUsers);
+		}
+		//remove leaved user's name and socket
+		currentUsers.splice(currentSockets.indexOf(socket),1);
+		currentSockets.splice(currentSockets.indexOf(socket),1);
+	}
+  });
+  
+  //when a new client connected add current users to client selector
+  for (var i = 0; i < currentUsers.length; i++) {
+    socket.emit('add userList', currentUsers[i]);
   }
 });
 
-app.get('/pagecount', function (req, res) {
-  // try to initialize the db on every request if it's not already
-  // initialized.
-  if (!db) {
-    initDb(function(err){});
-  }
-  if (db) {
-    db.collection('counts').count(function(err, count ){
-      res.send('{ pageCount: ' + count + '}');
-    });
-  } else {
-    res.send('{ pageCount: -1 }');
-  }
+http.listen(process.env.PORT || 8080, function(){
+  console.log('listening on *:8080');
 });
-
-// error handling
-app.use(function(err, req, res, next){
-  console.error(err.stack);
-  res.status(500).send('Something bad happened!');
-});
-
-initDb(function(err){
-  console.log('Error connecting to Mongo. Message:\n'+err);
-});
-
-app.listen(port, ip);
-console.log('Server running on http://%s:%s', ip, port);
-
-module.exports = app ;
