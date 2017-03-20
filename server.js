@@ -5,6 +5,8 @@ var io = require('socket.io')(http);
 var currentUsers = [];
 var currentSockets = [];
 var typingUsers = [];
+var currentRooms = [];
+var currentRoomsUsers = [,];
 
 app.get('/', function(req, res){
         res.sendFile(__dirname + '/index.html');
