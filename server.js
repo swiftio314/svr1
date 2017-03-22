@@ -158,6 +158,21 @@ var removeUser = function(index) {
     currentUsersIp.splice(index,1);
 }
 
+var removeRoomUsers = function(index) {
+    var roomUsers = currentRoomsUsers[index];
+    for (var i = currentRoomsUsers - 1; i >= 0  ; i--) {
+        roomUsers[i].splice(i,1);
+    }
+    currentRoomsUsers.splice(index,1);
+}
+
+var removeUser = function(index) {
+    currentUsers.splice(index,1);
+    currentSockets.splice(index,1);
+    currentUsersRoom.splice(index,1);
+    currentUsersIp.splice(index,1);
+}
+
 var sendEventArray = function(socket, event, arr) {
     console.log('list room = ' + arr.length);
     for (var i = 0; i < arr.length ; i++) {
