@@ -12,6 +12,7 @@ var typingUsers = [];
 var currentRooms = [];
 var currentRoomsUsers = [];
 
+var developerEventDefault = 'developerMsg';
 
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
@@ -32,6 +33,7 @@ io.on('connection', function(socket){
     });
 
     socket.on('creat room', function(msg){
+        sendDeveloper(developerEventDefault, 'ceate room = ' + msg[0]);
         if(currentRooms.indexOf(msg[0])==-1){
             var userArr = [];
             console.log('create room ' + msg[0]);
@@ -77,11 +79,11 @@ io.on('connection', function(socket){
     });
       
     socket.on('passmsgsvr', function(msg){
-        //check user's name exist or not
         var j = currentSockets.indexOf(socket);
+        sendDeveloper(developerEventDefault, 'passmsgclient from ' + currentUsers[j] + ', msg = ' + msg);
         for (var i = 0; i < currentUsers.length; i++) {
             if (socket != currentSockets[j]) {
-                currentSockets[i].emit('passmsgclient', currentUsers[j], msg)
+                socketSend(currentSockets[i], 'passmsgclient', msg);
             }
         }
     });
@@ -151,6 +153,13 @@ var disconnectUser = function(index) {
     currentSockets[index].disconnect();
 }
 
+var removeUser = function(index) {
+    currentUsers.splice(index,1);
+    currentSockets.splice(index,1);
+    currentUsersRoom.splice(index,1);
+    currentUsersIp.splice(index,1);
+}
+
 var removeRoomUsers = function(index) {
     var roomUsers = currentRoomsUsers[index];
     for (var i = currentRoomsUsers - 1; i >= 0  ; i--) {
@@ -162,13 +171,6 @@ var removeRoomUsers = function(index) {
 var removeRoom = function(index) {
     currentUsersList(removeRoomUsers, currentRooms.length);
     currentRooms.splice(index,1);
-}
-
-var removeUser = function(index) {
-    currentUsers.splice(index,1);
-    currentSockets.splice(index,1);
-    currentUsersRoom.splice(index,1);
-    currentUsersIp.splice(index,1);
 }
 
 var sendEventArray = function(socket, event, arr) {
@@ -185,7 +187,23 @@ var currentUsersList = function(callback, length) {
     }
 }
 
+var sendDeveloper = function(event, msg) {
+    io.emit(event, msg);
+}
+
 http.listen(process.env.PORT || 8080, function(){
     console.log('listening on *:8080');
     console.log('listening on *:8080'.substring(0,5));
+            
+    var userArr = [];
+    var userArr1 = [];
+    currentRooms.push('room1');
+    userArr.push('user1');
+    userArr.push('user2');
+    currentRooms.push('room1');
+    userArr1.push('user2');
+    userArr1.push('user3');
+    currentRoomsUsers.push(userArr);
+    currentRoomsUsers.push(userArr1);
+    removeRoom();
 });
