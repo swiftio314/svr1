@@ -82,7 +82,7 @@ io.on('connection', function(socket){
         var j = currentSockets.indexOf(socket);
         sendDeveloper(developerEventDefault, 'passmsgclient from ' + currentUsers[j] + ', msg = ' + msg);
         for (var i = 0; i < currentUsers.length; i++) {
-            if (socket != currentSockets[j]) {
+            if (i != j) {
                 socketSend(currentSockets[i], 'passmsgclient', msg);
             }
         }
