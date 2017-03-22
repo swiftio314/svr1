@@ -159,6 +159,11 @@ var removeRoomUsers = function(index) {
     currentRoomsUsers.splice(index,1);
 }
 
+var removeRoom = function(index) {
+    currentUsersList(removeRoomUsers, currentRooms.length);
+    currentRooms.splice(index,1);
+}
+
 var removeUser = function(index) {
     currentUsers.splice(index,1);
     currentSockets.splice(index,1);
