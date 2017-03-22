@@ -193,17 +193,4 @@ var sendDeveloper = function(event, msg) {
 
 http.listen(process.env.PORT || 8080, function(){
     console.log('listening on *:8080');
-    console.log('listening on *:8080'.substring(0,5));
-            
-    var userArr = [];
-    var userArr1 = [];
-    currentRooms.push('room1');
-    userArr.push('user1');
-    userArr.push('user2');
-    currentRooms.push('room1');
-    userArr1.push('user2');
-    userArr1.push('user3');
-    currentRoomsUsers.push(userArr);
-    currentRoomsUsers.push(userArr1);
-    removeRoom();
 });
