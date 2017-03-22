@@ -158,19 +158,6 @@ var removeUser = function(index) {
     currentUsersIp.splice(index,1);
 }
 
-var removeRoomUsers = function(index) {
-    var roomUsers = currentRoomsUsers[index];
-    for (var i = currentRoomsUsers - 1; i >= 0  ; i--) {
-        roomUsers[i].splice(i,1);
-    }
-    currentRoomsUsers.splice(index,1);
-}
-
-var removeRoom = function(index) {
-    currentUsersList(removeRoomUsers, currentRooms.length);
-    currentRooms.splice(index,1);
-}
-
 var sendEventArray = function(socket, event, arr) {
     console.log('list room = ' + arr.length);
     for (var i = 0; i < arr.length ; i++) {
@@ -184,14 +171,6 @@ var currentUsersList = function(callback, length) {
         callback(i);
     }
 }
-
-var myCallback = function(data) {
-    console.log('got data: '+data);
-};
-
-var usingItNow = function(callback) {
-    callback('get it?');
-};
 
 http.listen(process.env.PORT || 8080, function(){
   console.log('listening on *:8080');
