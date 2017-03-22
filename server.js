@@ -151,13 +151,6 @@ var disconnectUser = function(index) {
     currentSockets[index].disconnect();
 }
 
-var removeUser = function(index) {
-    currentUsers.splice(index,1);
-    currentSockets.splice(index,1);
-    currentUsersRoom.splice(index,1);
-    currentUsersIp.splice(index,1);
-}
-
 var removeRoomUsers = function(index) {
     var roomUsers = currentRoomsUsers[index];
     for (var i = currentRoomsUsers - 1; i >= 0  ; i--) {
