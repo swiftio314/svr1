@@ -275,37 +275,6 @@ var numStr6 = function(num) {
 	return str;
 }
 
-
-
-var testArray = function(arr) {
-    console.log('room = ' + arr.length);
-    for (var i = 0; i < arr.length ; i++) {
-        console.log(arr[i]);
-    }
-}
-
 http.listen(process.env.PORT || 8080, function(){
     console.log('listening on *:8080');
-	console.log('listening on *:8080'.substring(0,5));
-	console.log('listen'.length);
-	
-	console.log(numStr6(123));
-	var test = numStr6(123);
-	test = Number(test);
-	console.log(test);
-	
-	console.log(errorMsg.indexOf('join room'));
-	console.log(errorMsg.indexOf('passmsgsvr'));
-	
-	var arr = [];
-	var arr1 = [1];
-	var arr2 = ['A', 'B'];
-	var arr3 = [11, 22 , 33];
-	arr.push(arr1);
-	arr.push(arr2);
-	arr.push(arr3);
-	testArray(arr[0]);
-	testArray(arr[1]);
-	testArray(arr[2]);
-	console.log('ok');
 });
