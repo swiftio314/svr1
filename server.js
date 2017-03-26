@@ -1,18 +1,23 @@
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-//pair of user's name and user's socket
-var currentUsers = [];
-var currentSockets = [];
-var currentUsersIp = [];
-var currentUsersRoom = [];
 
 var typingUsers = [];
 
+//User Data
+var currentUsers = [];
+var currentSockets = [];
+var currentUsersIp = [];
+
+//Room Data
 var currentRooms = [];
 var currentRoomsUsers = [];
+//Room SyncVar
+var currentRoomsSync = []
 
 var developerEventDefault = 'developerMsg';
+
+var errorMsg = ['join room', 'delete room', 'msg room', 'listUser room', 'timer sync', 'passmsgsvr', 'deleteUser room', 'msg user'];
 
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
@@ -22,6 +27,7 @@ io.on('connection', function(socket){
     currentUsers.push('');
     currentSockets.push(socket);
     currentUsersIp.push(socket.request.connection.remoteAddress);
+	
     socket.on('chat message', function(userName, receiveName, msg, currentdate){
         if(receiveName == 'all'){
             //send message to all client without self
@@ -32,45 +38,52 @@ io.on('connection', function(socket){
         }
     });
 
-    socket.on('creat room', function(msg){
-        sendDeveloper(developerEventDefault, 'ceate room = ' + msg[0]);
-        if(currentRooms.indexOf(msg[0])==-1){
-            var userArr = [];
-            console.log('create room ' + msg[0]);
-            currentRooms.push(msg[0]);
-            userArr.push(msg[1]);
-            currentRoomsUsers.push(userArr);
-        } else {
-            console.log('error create room');
-            socket.emit('return error', '');
-        }
-    });
-
     socket.on('join room', function(msg){
-        var index = currentRooms.indexOf(msg[0]);
-        if(index!=-1){
-            if (currentRoomsUsers[index].indexOf(msg[1])==-1) {
-                currentRoomsUsers[index].push(msg[1]);
-            }
-        } else {
-            socket.emit('return error', '');
-        }
+		if (joinRoom(msg[0], msg[1]) != -1){
+			socketSend(socket, 'success', errorMsg.indexOf('join room'));
+		} else {
+			socketSend(socket, 'error', errorMsg.indexOf('join room'));
+		}
     });
 
-      
+    socket.on('delete room', function(msg){
+		deleteRoom(msg);
+		socketSend(socket, 'success', errorMsg.indexOf('delete room'));
+    });
+    
     socket.on('list room', function(msg){
         console.log('list room');
-        sendEventArray(socket, 'add room', currentRooms);
+        sendEventArray(socket, 'list room', currentRooms);
               
         var clientIp = socket.request.connection.remoteAddress;
         console.log(clientIp);
-        socketSend(socket, 'add room', clientIp)
+        socketSend(socket, 'passmsgclient', clientIp);
     });
+	
+	socket.on('msg room', function(msg){
+		msgRoom(msg[0], msg[1]);
+	});
     
-    socket.on('view room', function(msg){
+    socket.on('listUser room', function(msg){
         var index = currentRooms.indexOf(msg);
         if(index!=-1){
-            sendEventArray(socket, 'add room', currentRoomsUsers[index]);
+            sendEventArray(socket, 'listUser room', currentRoomsUsers[index]);
+        }
+    });
+	
+    socket.on('deleteUser room', function(msg){
+        var index = currentRooms.indexOf(msg);
+        if(index!=-1){
+            sendEventArray(socket, 'deleteUser room', currentRoomsUsers[index]);
+        }
+    });
+    
+    socket.on('msg user', function(msg){
+		//send receive msg
+        var index = currentUsers.indexOf(msg[1]);
+		
+        if(index!=-1){
+			currentSockets[index].emit('msg user', msg);
         }
     });
 
@@ -90,7 +103,7 @@ io.on('connection', function(socket){
 
     socket.on('new user', function(userName){
         //check user's name exist or not
-        console.log(userName + ', ' + currentUsersIp);
+        console.log(userName + ', ' + currentUsersIp[currentSockets.indexOf(socket)]);
         if(currentUsers.indexOf(userName)==-1){
             if(currentUsers[currentSockets.indexOf(socket)] != null){
               currentUsers[currentSockets.indexOf(socket)] = userName;
@@ -132,6 +145,17 @@ io.on('connection', function(socket){
                 typingUsers.splice(typingUsers.indexOf(currentUsers[currentSockets.indexOf(socket)]),1);
                 io.emit('typing message', typingUsers);
             }
+			
+			var userName = currentUsers[currentSockets.indexOf(socket)];
+			for (var i = 0; i < currentRoomsUsers.length; i++) {
+				var roomUsers = currentRoomsUsers[i];
+				var userIndex = roomUsers.indexOf(userName);
+				if(userIndex!=-1){
+					roomUsers[userIndex].splice(userIndex,1);
+					sendEventArray(socket, 'deleteUser room', currentRoomsUsers[index]);
+				}
+			}
+			
             //remove leaved user's name and socket
             currentUsers.splice(currentSockets.indexOf(socket),1);
             currentSockets.splice(currentSockets.indexOf(socket),1);
@@ -145,6 +169,36 @@ io.on('connection', function(socket){
   
 });
 
+var createRoom = function(roomName, userName) {
+	sendDeveloper(developerEventDefault, 'ceate room = ' + msg[0]);
+	if(currentRooms.indexOf(roomName)==-1){
+		var userArr = [];
+		console.log('create room ' + roomName);
+		currentRooms.push(roomName);
+		userArr.push(userName);
+		currentRoomsUsers.push(userArr);
+		currentRoomsSync.push(0);
+	} else {
+		console.log('error create room');
+		sendDeveloper(developerEventDefault, 'error create room = ' + msg[0]);
+		
+		return -1;
+	}
+}
+
+var joinRoom = function(roomName, userName) {
+	var index = currentRooms.indexOf(roomName);
+	if(index!=-1){
+		if (currentRoomsUsers[index].indexOf(userName)==-1) {
+			currentRoomsUsers[index].push(userName);
+			
+			return 1;
+		}
+	} else {
+		createRoom(roomName, userName);
+	}
+}
+
 var socketSend = function(socket, event, msg) {
     socket.emit(event, msg);
 }
@@ -156,25 +210,30 @@ var disconnectUser = function(index) {
 var removeUser = function(index) {
     currentUsers.splice(index,1);
     currentSockets.splice(index,1);
-    currentUsersRoom.splice(index,1);
     currentUsersIp.splice(index,1);
 }
 
-var removeRoomUsers = function(index) {
-    var roomUsers = currentRoomsUsers[index];
+var displayUser = function(index) {
+    console.log(currentUsers[index]);
+    console.log(currentSockets[index]);
+    console.log(currentUsersIp.splice[index]);
+}
+
+var deleteRoom = function(roomName) {
+	var index = currentRooms.indexOf(roomName);
+	var currentRoom = currentRooms[index];
+	
+	var roomUsers = currentRoomsUsers[index];
     for (var i = currentRoomsUsers - 1; i >= 0  ; i--) {
         roomUsers[i].splice(i,1);
     }
     currentRoomsUsers.splice(index,1);
-}
-
-var removeRoom = function(index) {
-    currentUsersList(removeRoomUsers, currentRooms.length);
-    currentRooms.splice(index,1);
+    currentRoom.splice(index,1);
+	currentRoomsSync.splice(index,1);
 }
 
 var sendEventArray = function(socket, event, arr) {
-    console.log('list room = ' + arr.length);
+    console.log('arr len = ' + arr.length);
     for (var i = 0; i < arr.length ; i++) {
         console.log(arr[i]);
         socketSend(socket, event, arr[i]);
@@ -191,6 +250,62 @@ var sendDeveloper = function(event, msg) {
     io.emit(event, msg);
 }
 
+var msgRoom = function(roomName, msg) {
+	var index = currentRooms.indexOf(roomName);
+	
+	if(index!=-1){
+		var roomUsers = currentRoomsUsers[index];
+		for (var i = 0; i < roomUsers.length; i++) {
+			var userIndex = currentUsers.indexOf(roomUsers[i]);
+			socketSend(currentSockets[userIndex], 'passmsgclient',  numStr6(currentRoomsSync[index]) + msg);
+		}
+		
+		currentRoomsSync[index] = currentRoomsSync[index] + 1;
+	}
+}
+
+var numStr6 = function(num) {
+	var str = String(num);
+	var len = str.length;
+	
+	while(len < 6){
+		str = '0' + str;
+		len = str.length;
+	}
+	return str;
+}
+
+
+
+var testArray = function(arr) {
+    console.log('room = ' + arr.length);
+    for (var i = 0; i < arr.length ; i++) {
+        console.log(arr[i]);
+    }
+}
+
 http.listen(process.env.PORT || 8080, function(){
     console.log('listening on *:8080');
+	console.log('listening on *:8080'.substring(0,5));
+	console.log('listen'.length);
+	
+	console.log(numStr6(123));
+	var test = numStr6(123);
+	test = Number(test);
+	console.log(test);
+	
+	console.log(errorMsg.indexOf('join room'));
+	console.log(errorMsg.indexOf('passmsgsvr'));
+	
+	var arr = [];
+	var arr1 = [1];
+	var arr2 = ['A', 'B'];
+	var arr3 = [11, 22 , 33];
+	arr.push(arr1);
+	arr.push(arr2);
+	arr.push(arr3);
+	testArray(arr[0]);
+	testArray(arr[1]);
+	testArray(arr[2]);
+	console.log('ok');
 });
