@@ -13,7 +13,7 @@ var currentUsersIp = [];
 var currentRooms = [];
 var currentRoomsUsers = [];
 //Room SyncVar
-var currentRoomsSync = []
+var currentRoomsSync = [];
 
 var developerEventDefault = 'developerMsg';
 
