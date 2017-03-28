@@ -39,6 +39,7 @@ io.on('connection', function(socket){
     });
 
     socket.on('join room', function(msg){
+	    sendDeveloper(developerEventDefault, msg[1] + 'want to join room = ' + msg[0]);
 		if (joinRoom(msg[0], msg[1]) != -1){
 			socketSend(socket, 'success', errorMsg.indexOf('join room'));
 		} else {
