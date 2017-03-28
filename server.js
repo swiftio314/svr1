@@ -72,10 +72,7 @@ io.on('connection', function(socket){
     });
 	
     socket.on('deleteUser room', function(msg){
-        var index = currentRooms.indexOf(msg[0]);
-        if(index!=-1){
-            sendEventArray(socket, 'deleteUser room', currentRoomsUsers[index]);
-        }
+        delUserRoom(msg[0], msg[1]);
     });
     
     socket.on('msg user', function(msg){
@@ -148,12 +145,7 @@ io.on('connection', function(socket){
 			
 			var userName = currentUsers[currentSockets.indexOf(socket)];
 			for (var i = 0; i < currentRoomsUsers.length; i++) {
-				var roomUsers = currentRoomsUsers[i];
-				var userIndex = roomUsers.indexOf(userName);
-				if(userIndex!=-1){
-					roomUsers[userIndex].splice(userIndex,1);
-					sendEventArray(socket, 'deleteUser room', currentRoomsUsers[index]);
-				}
+				delUserRoom(currentRooms[i], userName);
 			}
 			
             //remove leaved user's name and socket
@@ -248,6 +240,24 @@ var currentUsersList = function(callback, length) {
 
 var sendDeveloper = function(event, msg) {
     io.emit(event, msg);
+}
+
+var delUserRoom = function(roomName, userName) {
+	var index = currentRooms.indexOf(roomName);
+	
+	if(index!=-1){
+		var roomUsers = currentRoomsUsers[index];
+		var delUserIndex = roomUsers.indexOf(userName);
+		if(delUserIndex!=-1){
+			roomUsers.splice(delUserIndex,1);
+			for (var i = 0; i < roomUsers.length; i++) {
+				var userIndex = currentUsers.indexOf(roomUsers[i]);
+				socketSend(currentSockets[userIndex], 'deleteUser room',  userName);
+			}
+
+			currentRoomsSync[index] = currentRoomsSync[index] + 1;
+		}
+	}
 }
 
 var msgRoom = function(roomName, msg) {
