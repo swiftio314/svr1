@@ -47,7 +47,7 @@ io.on('connection', function(socket){
     });
 
     socket.on('delete room', function(msg){
-		deleteRoom(msg);
+		deleteRoom(msg[0]);
 		socketSend(socket, 'success', errorMsg.indexOf('delete room'));
     });
     
@@ -65,14 +65,14 @@ io.on('connection', function(socket){
 	});
     
     socket.on('listUser room', function(msg){
-        var index = currentRooms.indexOf(msg);
+        var index = currentRooms.indexOf(msg[0]);
         if(index!=-1){
-            sendEventArray(socket, 'listUser room', currentRoomsUsers[index]);
+            socketSend(socket, 'listUser room', currentRoomsUsers[index]);
         }
     });
 	
     socket.on('deleteUser room', function(msg){
-        var index = currentRooms.indexOf(msg);
+        var index = currentRooms.indexOf(msg[0]);
         if(index!=-1){
             sendEventArray(socket, 'deleteUser room', currentRoomsUsers[index]);
         }
@@ -80,7 +80,7 @@ io.on('connection', function(socket){
     
     socket.on('msg user', function(msg){
 		//send receive msg
-        var index = currentUsers.indexOf(msg[1]);
+        var index = currentUsers.indexOf(msg[0]);
 		
         if(index!=-1){
 			currentSockets[index].emit('msg user', msg);
@@ -93,10 +93,10 @@ io.on('connection', function(socket){
       
     socket.on('passmsgsvr', function(msg){
         var j = currentSockets.indexOf(socket);
-        sendDeveloper(developerEventDefault, 'passmsgclient from ' + currentUsers[j] + ', msg = ' + msg);
+        sendDeveloper(developerEventDefault, 'passmsgclient from ' + currentUsers[j] + ', msg = ' + msg[0]);
         for (var i = 0; i < currentUsers.length; i++) {
             if (i != j) {
-                socketSend(currentSockets[i], 'passmsgclient', msg);
+                socketSend(currentSockets[i], 'passmsgclient', msg[0]);
             }
         }
     });
@@ -170,7 +170,7 @@ io.on('connection', function(socket){
 });
 
 var createRoom = function(roomName, userName) {
-	sendDeveloper(developerEventDefault, 'ceate room = ' + msg[0]);
+	sendDeveloper(developerEventDefault, 'ceate room = ' + roomName);
 	if(currentRooms.indexOf(roomName)==-1){
 		var userArr = [];
 		console.log('create room ' + roomName);
@@ -180,7 +180,7 @@ var createRoom = function(roomName, userName) {
 		currentRoomsSync.push(0);
 	} else {
 		console.log('error create room');
-		sendDeveloper(developerEventDefault, 'error create room = ' + msg[0]);
+		sendDeveloper(developerEventDefault, 'error create room = ' + roomName);
 		
 		return -1;
 	}
