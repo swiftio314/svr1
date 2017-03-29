@@ -86,7 +86,7 @@ io.on('connection', function(socket){
     });
 
     socket.on('timer sync', function(msg){
-        socket.emit('send echo', '');
+        socket.emit('timersync echo', '');
     });
       
     socket.on('passmsgsvr', function(msg){
