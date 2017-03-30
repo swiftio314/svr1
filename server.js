@@ -91,10 +91,10 @@ io.on('connection', function(socket){
       
     socket.on('passmsgsvr', function(msg){
         var j = currentSockets.indexOf(socket);
-        sendDeveloper(developerEventDefault, 'passmsgclient from ' + currentUsers[j] + ', msg = ' + msg[0]);
+        sendDeveloper(developerEventDefault, 'passmsgclient from ' + currentUsers[j] + ', msg = ' + msg);
         for (var i = 0; i < currentUsers.length; i++) {
             if (i != j) {
-                socketSend(currentSockets[i], 'passmsgclient', msg[0]);
+                socketSend(currentSockets[i], 'passmsgclient', msg);
             }
         }
     });
