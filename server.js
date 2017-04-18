@@ -214,15 +214,18 @@ var displayUser = function(index) {
 
 var deleteRoom = function(roomName) {
 	var index = currentRooms.indexOf(roomName);
-	var currentRoom = currentRooms[index];
 	
-	var roomUsers = currentRoomsUsers[index];
-    for (var i = currentRoomsUsers - 1; i >= 0  ; i--) {
-        roomUsers[i].splice(i,1);
-    }
-    currentRoomsUsers.splice(index,1);
-    currentRoom.splice(index,1);
-	currentRoomsSync.splice(index,1);
+	if(index!=-1){
+		var currentRoom = currentRooms[index];
+
+		var roomUsers = currentRoomsUsers[index];
+		for (var i = currentRoomsUsers - 1; i >= 0  ; i--) {
+			roomUsers[i].splice(i,1);
+		}
+		currentRoomsUsers.splice(index,1);
+		currentRooms.splice(index,1);
+		currentRoomsSync.splice(index,1);
+	}
 }
 
 var sendEventArray = function(socket, event, arr) {
@@ -257,6 +260,10 @@ var delUserRoom = function(roomName, userName) {
 			}
 
 			currentRoomsSync[index] = currentRoomsSync[index] + 1;
+			
+			if(roomUsers.length==0) {
+				deleteRoom(roomName);
+			}
 		}
 	}
 }
