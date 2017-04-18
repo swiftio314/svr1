@@ -54,7 +54,7 @@ io.on('connection', function(socket){
     
     socket.on('list room', function(msg){
         console.log('list room');
-        sendEventArray(socket, 'list room', currentRooms);
+        socketSend(socket, 'list room', currentRooms);
               
         var clientIp = socket.request.connection.remoteAddress;
         console.log(clientIp);
