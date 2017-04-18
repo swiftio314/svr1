@@ -39,7 +39,7 @@ io.on('connection', function(socket){
     });
 
     socket.on('join room', function(msg){
-	    sendDeveloper(developerEventDefault, msg[1] + 'want to join room = ' + msg[0]);
+	    sendDeveloper(developerEventDefault, msg[1] + ' want to join room = ' + msg[0]);
 		if (joinRoom(msg[0], msg[1]) != -1){
 			socketSend(socket, 'success', errorMsg.indexOf('join room'));
 		} else {
@@ -173,7 +173,7 @@ var createRoom = function(roomName, userName) {
 		currentRoomsSync.push(0);
 	} else {
 		console.log('error create room');
-		sendDeveloper(developerEventDefault, 'error create room = ' + roomName);
+		sendDeveloper(developerEventDefault, 'Error create room = ' + roomName);
 		
 		return -1;
 	}
