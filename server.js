@@ -298,12 +298,12 @@ var delUserRoom = function(roomName, userName) {
 
 var msgRoom = function(msg) {
 	var roomName = msg[0];
+	msg[1] = numStr6(currentRoomsSync[index]) + msg[1];
 	var index = currentRooms.indexOf(roomName);
 	if(index!=-1){
 		var roomUsers = currentRoomsUsers[index];
 		for (var i = 0; i < roomUsers.length; i++) {
 			var userIndex = currentUsers.indexOf(roomUsers[i]);
-			msg[1] = numStr6(currentRoomsSync[index]) + msg[1];
 			socketSend(currentSockets[userIndex], 'msg room', msg);
 		}
 		
