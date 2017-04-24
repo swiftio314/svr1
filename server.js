@@ -41,7 +41,7 @@ io.on('connection', function(socket){
 	
 	socket.on('setRoomIsHidden', function(msg){
 		setRoomIsHidden(msg[0], msg[1]);
-	}
+	});
 	
     socket.on('join room', function(msg){
 	    sendDeveloper(developerEventDefault, msg[1] + ' want to join room = ' + msg[0]);
