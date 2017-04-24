@@ -60,12 +60,18 @@ io.on('connection', function(socket){
     });
     
     socket.on('list room', function(msg){
-        console.log('list room');
-        socketSend(socket, 'list room', currentRooms);
+        var visibleRooms = [];
+		for (var i = 0; i < currentRooms.length ; i++) {
+			if (currentRoomsIsHidden[i] == 'false') {
+				visibleRooms.push(currentRoomsIsHidden[i]);
+			}
+		}
+		console.log('list room');
+        socketSend(socket, 'list room', visibleRooms);
               
-        var clientIp = socket.request.connection.remoteAddress;
-        console.log(clientIp);
-        socketSend(socket, 'passmsgclient', clientIp);
+        //var clientIp = socket.request.connection.remoteAddress;
+        //console.log(clientIp);
+        //socketSend(socket, 'passmsgclient', clientIp);
     });
 	
 	socket.on('msg room', function(msg){
