@@ -275,7 +275,8 @@ var msgRoom = function(roomName, msg) {
 		var roomUsers = currentRoomsUsers[index];
 		for (var i = 0; i < roomUsers.length; i++) {
 			var userIndex = currentUsers.indexOf(roomUsers[i]);
-			socketSend(currentSockets[userIndex], 'msg room',  numStr6(currentRoomsSync[index]) + msg);
+			msg[0] = numStr6(currentRoomsSync[index]) + msg[0];
+			socketSend(currentSockets[userIndex], 'msg room', msg);
 		}
 		
 		currentRoomsSync[index] = currentRoomsSync[index] + 1;
