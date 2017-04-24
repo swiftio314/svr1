@@ -63,7 +63,7 @@ io.on('connection', function(socket){
         var visibleRooms = [];
 		for (var i = 0; i < currentRooms.length ; i++) {
 			if (currentRoomsIsHidden[i] == 'false') {
-				visibleRooms.push(currentRoomsIsHidden[i]);
+				visibleRooms.push(currentRooms[i]);
 			}
 		}
 		console.log('list room');
