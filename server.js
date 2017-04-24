@@ -38,7 +38,11 @@ io.on('connection', function(socket){
             currentSockets[currentUsers.indexOf(receiveName)].emit('chat message', userName, receiveName, msg, currentdate);
         }
     });
-
+	
+	socket.on('setRoomIsHidden', function(msg){
+		setRoomIsHidden(msg[0], msg[1]);
+	}
+	
     socket.on('join room', function(msg){
 	    sendDeveloper(developerEventDefault, msg[1] + ' want to join room = ' + msg[0]);
 		if (joinRoom(msg[0], msg[1]) != -1){
@@ -47,14 +51,7 @@ io.on('connection', function(socket){
 			socketSend(socket, 'error', errorMsg.indexOf('join room'));
 		}
 		
-		var index = currentRooms.indexOf(msg[0]);
-		if(index!=-1){
-			if (msg[2] == 'idle') {
-				socketSend(socket, 'setRoomIsHidden', currentRoomsIsHidden[index]);
-			} else {
-				currentRoomsIsHidden[index] = msg[2];
-			}
-		}
+		setRoomIsHidden(msg[0], msg[2]);
     });
 
     socket.on('delete room', function(msg){
@@ -223,6 +220,17 @@ var displayUser = function(index) {
     console.log(currentUsers[index]);
     console.log(currentSockets[index]);
     console.log(currentUsersIp.splice[index]);
+}
+
+var setRoomIsHidden = function(roomName, isHidden) {
+	var index = currentRooms.indexOf(roomName);
+	if(index!=-1){
+		if (isHidden == 'idle') {
+			socketSend(socket, 'setRoomIsHidden', currentRoomsIsHidden[index]);
+		} else {
+			currentRoomsIsHidden[index] = isHidden;
+		}
+	}
 }
 
 var deleteRoom = function(roomName) {
