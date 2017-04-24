@@ -11,6 +11,7 @@ var currentUsersIp = [];
 
 //Room Data
 var currentRooms = [];
+var currentRoomsIsHidden = [];
 var currentRoomsUsers = [];
 //Room SyncVar
 var currentRoomsSync = [];
@@ -44,6 +45,15 @@ io.on('connection', function(socket){
 			socketSend(socket, 'success', errorMsg.indexOf('join room'));
 		} else {
 			socketSend(socket, 'error', errorMsg.indexOf('join room'));
+		}
+		
+		var index = currentRooms.indexOf(msg[0]);
+		if(index!=-1){
+			if (msg[2] == 'idle') {
+				socketSend(socket, 'setRoomIsHidden', currentRoomsIsHidden[index]);
+			} else {
+				currentRoomsIsHidden[index] = msg[2];
+			}
 		}
     });
 
@@ -173,6 +183,7 @@ var createRoom = function(roomName, userName) {
 		userArr.push(userName);
 		currentRoomsUsers.push(userArr);
 		currentRoomsSync.push(0);
+		currentRoomsIsHidden.push('idle');
 	} else {
 		console.log('error create room');
 		sendDeveloper(developerEventDefault, 'Error create room = ' + roomName);
@@ -227,6 +238,7 @@ var deleteRoom = function(roomName) {
 		currentRoomsUsers.splice(index,1);
 		currentRooms.splice(index,1);
 		currentRoomsSync.splice(index,1);
+		currentRoomsIsHidden.splice(index,1);
 	}
 }
 
