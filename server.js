@@ -154,6 +154,8 @@ io.on('connection', function(socket){
             currentSockets.splice(currentSockets.indexOf(socket),1);
         }
     });
+	
+    socketSend(socket, 'connectsvr', '');
   
     //when a new client connected add current users to client selector
     for (var i = 0; i < currentUsers.length; i++) {
