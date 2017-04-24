@@ -40,7 +40,7 @@ io.on('connection', function(socket){
     });
 	
 	socket.on('setRoomIsHidden', function(msg){
-		setRoomIsHidden(msg[0], msg[1]);
+		setRoomIsHidden(socket, msg[0], msg[1]);
 	});
 	
     socket.on('join room', function(msg){
@@ -51,7 +51,7 @@ io.on('connection', function(socket){
 			socketSend(socket, 'error', errorMsg.indexOf('join room'));
 		}
 		
-		setRoomIsHidden(msg[0], msg[2]);
+		setRoomIsHidden(socket, msg[0], msg[2]);
     });
 
     socket.on('delete room', function(msg){
@@ -222,7 +222,7 @@ var displayUser = function(index) {
     console.log(currentUsersIp.splice[index]);
 }
 
-var setRoomIsHidden = function(roomName, isHidden) {
+var setRoomIsHidden = function(socket, roomName, isHidden) {
 	var index = currentRooms.indexOf(roomName);
 	if(index!=-1){
 		if (isHidden == 'idle') {
