@@ -284,6 +284,9 @@ var delUserRoom = function(roomName, userName) {
 			roomUsers.splice(delUserIndex,1);
 			for (var i = 0; i < roomUsers.length; i++) {
 				var userIndex = currentUsers.indexOf(roomUsers[i]);
+				if(userIndex==-1){//test
+					console.log('delUserRoom error user = ' + roomUsers[i]);
+				}//test
 				socketSend(currentSockets[userIndex], 'deleteUser room',  userName);
 			}
 
