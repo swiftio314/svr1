@@ -303,8 +303,12 @@ var msgRoom = function(msg) {
 		msg[1] = numStr6(currentRoomsSync[index]) + msg[1];
 		
 		var roomUsers = currentRoomsUsers[index];
+		console.log('msg room = ' + roomUsers.length);//test
 		for (var i = 0; i < roomUsers.length; i++) {
 			var userIndex = currentUsers.indexOf(roomUsers[i]);
+			if(userIndex==-1){//test
+				console.log('error user = ' + roomUsers[i]);
+			}//test
 			socketSend(currentSockets[userIndex], 'msg room', msg);
 		}
 		
